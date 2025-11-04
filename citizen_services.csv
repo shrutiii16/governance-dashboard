@@ -1,0 +1,6 @@
+department,issue_type,severity_score,response_time_hours,resolved,citizen_feedback_score,citizen_feedback_text
+Health,Hospital Waste,0.8,24,No,2,"Hospital waste not cleared for 2 days"
+Water,Pipe Leakage,0.7,48,No,3,"Major pipe leak in sector 12"
+Electricity,Power Outage,0.9,6,Yes,4,"Power restored quickly, good response"
+Sanitation,Garbage Collection,0.6,72,No,2,"Garbage collection delayed again"
+Transport,Road Damage,0.5,120,No,1,"Potholes causing accidents near main road"

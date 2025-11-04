@@ -1,0 +1,11 @@
+ticket_id,department,category,severity,citizen_rating,days_open,resolved,ward,predicted_resolution,probability_resolved,priority_score
+ID001,Health,Hospital Delay,High,2,10,No,3,0,0.08,High Priority
+ID002,Infrastructure,Road Damage,Medium,4,5,Yes,7,1,0.55,Normal
+ID003,Health,Clinic Shortage,High,1,15,No,5,0,0.09,High Priority
+ID004,Public Safety,Street Light Failure,Low,5,2,Yes,4,1,0.84,Normal
+ID005,Infrastructure,Water Leakage,High,3,8,No,3,0,0.11,High Priority
+ID006,Health,Ambulance Delay,High,2,12,No,1,0,0.16,High Priority
+ID007,Public Safety,Garbage Issue,Medium,4,6,Yes,2,1,0.88,Normal
+ID008,Infrastructure,Bridge Crack,High,3,9,No,8,0,0.06,High Priority
+ID009,Health,Medical Supply Shortage,High,2,11,No,5,0,0.12,High Priority
+ID010,Public Safety,Drain Blockage,Medium,3,7,Yes,6,1,0.78,Normal
