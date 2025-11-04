@@ -4,3 +4,5 @@ matplotlib
 google-cloud-bigquery
 google-generativeai
 python-dotenv
+google-auth
+db-dtypes
