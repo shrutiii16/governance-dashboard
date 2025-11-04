@@ -32,8 +32,6 @@ DATASET_ID = "governance_data"
 TABLE_ID = "predicted_priorities"
 
 # ---------------- LOAD DATA ----------------
-try:
-    st.info(f"🔄 Fetching data from BigQuery table `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}` ...")
 
     from google.oauth2 import service_account
     service_account_info = st.secrets["bigquery_service_account"]
@@ -130,4 +128,5 @@ if st.button("Generate AI Summary"):
         st.error(f"Gemini summarization failed: {e}")
 
 st.info("✅ Dashboard ready and running successfully!")
+
 
