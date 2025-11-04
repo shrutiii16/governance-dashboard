@@ -32,18 +32,17 @@ DATASET_ID = "governance_data"
 TABLE_ID = "predicted_priorities"
 
 # ---------------- LOAD DATA ----------------
-
-    from google.oauth2 import service_account
+try:
     service_account_info = st.secrets["bigquery_service_account"]
     credentials = service_account.Credentials.from_service_account_info(service_account_info)
     client = bigquery.Client(credentials=credentials, project=service_account_info["project_id"])
 
-    st.write("✅ Connected to BigQuery as:", service_account_info["client_email"])
+    # ✅ Removed visible BigQuery email message
+    # st.write("✅ Connected to BigQuery as:", service_account_info["client_email"])
 
     query = f"SELECT * FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}` LIMIT 1000"
     data = client.query(query).to_dataframe()
     st.success("✅ Data loaded from BigQuery successfully!")
-
 
 except Exception as e:
     st.warning(f"⚠️ BigQuery not configured — using local CSV file. Error: {e}")
@@ -66,14 +65,13 @@ st.subheader("🔍 Priority Breakdown")
 if "priority_score" in data.columns:
     priority_counts = data["priority_score"].value_counts()
 
-    # Smaller and neater chart
-    fig1, ax1 = plt.subplots(figsize=(2, 2))  # 👈 reduced chart size
+    fig1, ax1 = plt.subplots(figsize=(2, 2))  # compact chart
     ax1.pie(
         priority_counts,
         labels=priority_counts.index,
         autopct="%1.1f%%",
         startangle=90,
-        textprops={'fontsize': 8}  # 👈 smaller text
+        textprops={'fontsize': 8}
     )
     ax1.axis("equal")
     st.pyplot(fig1)
@@ -117,7 +115,6 @@ if st.button("Generate AI Summary"):
         text_summary = data.head(50).to_string(index=False)
         prompt = f"Summarize key trends and citizen issues based on this service dataset:\n{text_summary}"
 
-        # ✅ Use correct model name (gemini-2.0-flash)
         model = genai.GenerativeModel("gemini-2.0-flash")
         response = model.generate_content(prompt)
 
@@ -128,5 +125,3 @@ if st.button("Generate AI Summary"):
         st.error(f"Gemini summarization failed: {e}")
 
 st.info("✅ Dashboard ready and running successfully!")
-
-
