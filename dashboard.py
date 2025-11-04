@@ -35,14 +35,17 @@ TABLE_ID = "predicted_priorities"
 try:
     st.info(f"🔄 Fetching data from BigQuery table `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}` ...")
 
-    # ✅ Load credentials securely from Streamlit Secrets
+    from google.oauth2 import service_account
     service_account_info = st.secrets["bigquery_service_account"]
     credentials = service_account.Credentials.from_service_account_info(service_account_info)
     client = bigquery.Client(credentials=credentials, project=service_account_info["project_id"])
 
+    st.write("✅ Connected to BigQuery as:", service_account_info["client_email"])
+
     query = f"SELECT * FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}` LIMIT 1000"
     data = client.query(query).to_dataframe()
     st.success("✅ Data loaded from BigQuery successfully!")
+
 
 except Exception as e:
     st.warning(f"⚠️ BigQuery not configured — using local CSV file. Error: {e}")
@@ -127,3 +130,4 @@ if st.button("Generate AI Summary"):
         st.error(f"Gemini summarization failed: {e}")
 
 st.info("✅ Dashboard ready and running successfully!")
+
