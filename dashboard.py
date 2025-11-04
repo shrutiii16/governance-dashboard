@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from google.cloud import bigquery
+from google.oauth2 import service_account
 import google.generativeai as genai
 from dotenv import load_dotenv
 
@@ -13,19 +14,13 @@ st.set_page_config(page_title="AI-Powered Governance Dashboard", layout="wide")
 # ---------------- ENV SETUP ----------------
 load_dotenv()
 
-GOOGLE_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 GENAI_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# Configure APIs
+# Configure Gemini API
 if not GENAI_API_KEY:
-    st.error("❌ Missing Gemini API key. Please set GOOGLE_API_KEY in .env file.")
+    st.error("❌ Missing Gemini API key. Please set GOOGLE_API_KEY in your environment or Streamlit secrets.")
 else:
     genai.configure(api_key=GENAI_API_KEY)
-
-if GOOGLE_CREDENTIALS and os.path.exists(GOOGLE_CREDENTIALS):
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_CREDENTIALS
-else:
-    st.warning("⚠️ Google credentials file not found. Will try local CSV instead.")
 
 # ---------------- PAGE HEADER ----------------
 st.title("🏛️ AI-Powered Governance Dashboard")
@@ -39,10 +34,16 @@ TABLE_ID = "predicted_priorities"
 # ---------------- LOAD DATA ----------------
 try:
     st.info(f"🔄 Fetching data from BigQuery table `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}` ...")
-    client = bigquery.Client(project=PROJECT_ID)
+
+    # ✅ Load credentials securely from Streamlit Secrets
+    service_account_info = st.secrets["bigquery_service_account"]
+    credentials = service_account.Credentials.from_service_account_info(service_account_info)
+    client = bigquery.Client(credentials=credentials, project=service_account_info["project_id"])
+
     query = f"SELECT * FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}` LIMIT 1000"
     data = client.query(query).to_dataframe()
     st.success("✅ Data loaded from BigQuery successfully!")
+
 except Exception as e:
     st.warning(f"⚠️ BigQuery not configured — using local CSV file. Error: {e}")
     try:
@@ -65,20 +66,18 @@ if "priority_score" in data.columns:
     priority_counts = data["priority_score"].value_counts()
 
     # Smaller and neater chart
-    fig1, ax1 = plt.subplots(figsize=(2, 2))  # 👈 reduced size here
+    fig1, ax1 = plt.subplots(figsize=(2, 2))  # 👈 reduced chart size
     ax1.pie(
         priority_counts,
         labels=priority_counts.index,
         autopct="%1.1f%%",
         startangle=90,
-        textprops={'fontsize': 8}  # 👈 smaller text for readability
+        textprops={'fontsize': 8}  # 👈 smaller text
     )
-    ax1.axis("equal")  # Keeps pie chart circular
+    ax1.axis("equal")
     st.pyplot(fig1)
-
 else:
     st.info("Column 'priority_score' not found in data.")
-
 
 # 3️⃣ Department-wise Pending Issues
 st.subheader("🏢 Department-wise Pending Issues")
@@ -117,9 +116,8 @@ if st.button("Generate AI Summary"):
         text_summary = data.head(50).to_string(index=False)
         prompt = f"Summarize key trends and citizen issues based on this service dataset:\n{text_summary}"
 
-        # ✅ Use the correct model name (without 'models/')
-        # I've updated it to use the current best model for this task.
-        model = genai.GenerativeModel("gemini-2.5-flash") 
+        # ✅ Use correct model name (gemini-2.0-flash)
+        model = genai.GenerativeModel("gemini-2.0-flash")
         response = model.generate_content(prompt)
 
         st.success("✅ Gemini AI Summary Generated")
@@ -127,6 +125,5 @@ if st.button("Generate AI Summary"):
 
     except Exception as e:
         st.error(f"Gemini summarization failed: {e}")
-
 
 st.info("✅ Dashboard ready and running successfully!")
