@@ -1,4 +1,3 @@
-# dashboard.py
 import os
 import streamlit as st
 import pandas as pd
@@ -8,37 +7,27 @@ from google.oauth2 import service_account
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# ---------------- PAGE SETUP ----------------
 st.set_page_config(page_title="AI-Powered Governance Dashboard", layout="wide")
 
-# ---------------- ENV SETUP ----------------
 load_dotenv()
-
 GENAI_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# Configure Gemini API
 if not GENAI_API_KEY:
     st.error("❌ Missing Gemini API key. Please set GOOGLE_API_KEY in your environment or Streamlit secrets.")
 else:
     genai.configure(api_key=GENAI_API_KEY)
 
-# ---------------- PAGE HEADER ----------------
 st.title("🏛️ AI-Powered Governance Dashboard")
 st.write("Transforming Citizen Service Delivery with Predictive Insights")
 
-# ---------------- BIGQUERY CONFIG ----------------
 PROJECT_ID = "second-sandbox-477217-h7"
 DATASET_ID = "governance_data"
 TABLE_ID = "predicted_priorities"
 
-# ---------------- LOAD DATA ----------------
 try:
     service_account_info = st.secrets["bigquery_service_account"]
     credentials = service_account.Credentials.from_service_account_info(service_account_info)
     client = bigquery.Client(credentials=credentials, project=service_account_info["project_id"])
-
-    # ✅ Removed visible BigQuery email message
-    # st.write("✅ Connected to BigQuery as:", service_account_info["client_email"])
 
     query = f"SELECT * FROM `{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}` LIMIT 1000"
     data = client.query(query).to_dataframe()
@@ -53,19 +42,13 @@ except Exception as e:
         st.error("❌ No BigQuery connection and no local CSV found. Please check configuration.")
         st.stop()
 
-# ---------------- DASHBOARD SECTIONS ----------------
-
-# 1️⃣ Summary
 st.header("📋 Service Request Summary")
 st.dataframe(data)
 
-# 2️⃣ Priority Distribution
 st.subheader("🔍 Priority Breakdown")
-
 if "priority_score" in data.columns:
     priority_counts = data["priority_score"].value_counts()
-
-    fig1, ax1 = plt.subplots(figsize=(2, 2))  # compact chart
+    fig1, ax1 = plt.subplots(figsize=(2, 2))
     ax1.pie(
         priority_counts,
         labels=priority_counts.index,
@@ -78,7 +61,6 @@ if "priority_score" in data.columns:
 else:
     st.info("Column 'priority_score' not found in data.")
 
-# 3️⃣ Department-wise Pending Issues
 st.subheader("🏢 Department-wise Pending Issues")
 if "resolved" in data.columns and "department" in data.columns:
     data["resolved"] = data["resolved"].astype(str).str.strip().str.lower()
@@ -91,7 +73,6 @@ if "resolved" in data.columns and "department" in data.columns:
 else:
     st.info("⚠️ Columns 'resolved' or 'department' not found in data.")
 
-# 4️⃣ Key Insights
 st.subheader("💡 Key Insights")
 if "priority_score" in data.columns:
     data["priority_score"] = data["priority_score"].astype(str)
@@ -101,15 +82,12 @@ if "priority_score" in data.columns:
         st.markdown("**Departments with Most High Priority Issues:**")
         st.table(high_priority["department"].value_counts().head())
 
-# 5️⃣ Severity Level
 if "severity" in data.columns:
     st.subheader("🔥 Severity Level Breakdown")
     severity_counts = data["severity"].value_counts()
     st.bar_chart(severity_counts)
 
-# 6️⃣ Gemini AI Summary
 st.subheader("🤖 Gemini AI Summary of Citizen Feedback")
-
 if st.button("Generate AI Summary"):
     try:
         text_summary = data.head(50).to_string(index=False)
